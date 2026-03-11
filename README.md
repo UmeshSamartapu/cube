@@ -11,6 +11,10 @@ An interactive web application built with **Django** and **Google `<model-viewer
 * **Interactive Controls**: Includes a random color generator and manual zoom in/out controls.
 
 ---
+## Demo
+
+![Demo](assets/cube_demo.gif)
+
 
 ## 🛠️ 1. Blender Asset Configuration
 
