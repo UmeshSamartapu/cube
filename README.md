@@ -1,6 +1,3 @@
-This `README.md` is designed to help you or other developers set up the project from scratch, including the specific Blender configurations required to make the code work with your model.
-
----
 
 # 🧊 Django 3D Interactive Cube
 
