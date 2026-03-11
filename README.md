@@ -186,14 +186,3 @@ Open your browser and navigate to:
 If the faces are rotated incorrectly on a different machine, ensure you "Applied Rotation" in Blender before exporting the `.glb`.
 
 ---
-
-### Pro-Tip for Git
-
-To make it easier for others, create a `requirements.txt` file in your main folder before pushing to GitHub:
-
-```bash
-pip freeze > requirements.txt
-
-```
-
-Would you like me to help you write the **`.gitignore`** file so you don't accidentally upload unnecessary files (like `__pycache__` or the virtual environment) to GitHub?
