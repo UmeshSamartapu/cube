@@ -1,0 +1,169 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Cube Controller</title>
+
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #111;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+        }
+
+        model-viewer {
+            width: 500px;
+            height: 420px;
+            background: radial-gradient(#333, #111);
+            border-radius: 15px;
+            margin: auto;
+            border: 2px solid #444;
+        }
+
+        .controls {
+            margin-top: 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .zoom-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            padding: 12px 25px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            background: #2962ff;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.2s ease;
+        }
+
+        .zoom-btn { background: #444; }
+
+        button:hover {
+            background: #0039cb;
+            transform: scale(1.05);
+        }
+
+        #status {
+            margin-top: 10px;
+            font-size: 20px;
+            min-height: 30px;
+        }
+
+        .highlight { font-weight: bold; text-transform: uppercase; }
+    </style>
+</head>
+
+<body>
+
+    <h2>3D Cube Interface</h2>
+
+    <model-viewer 
+        id="cube" 
+        src="{% static 'models/colored_cube.glb' %}" 
+        camera-controls 
+        min-camera-orbit="auto auto 1.5m"
+        max-camera-orbit="auto auto 10m"
+        camera-orbit="0deg 90deg 4m" 
+        field-of-view="30deg" 
+        exposure="1" 
+        shadow-intensity="1"
+        interpolation-decay="200">
+    </model-viewer>
+
+    <div class="controls">
+        <div class="zoom-controls">
+            <button id="zoomIn" class="zoom-btn">Zoom +</button>
+            <button id="zoomOut" class="zoom-btn">Zoom -</button>
+        </div>
+
+        <button id="randomBtn">Generate Random Colour</button>
+        
+        <div id="status">Loading Model...</div>
+    </div>
+
+    <script>
+        const viewer = document.getElementById("cube");
+        const status = document.getElementById("status");
+        const btn = document.getElementById("randomBtn");
+
+        let modelReady = false;
+
+        /* MAPPING BASED ON YOUR DATA */
+        const faces = [
+            { name: "Blue (Right)",   orbit: "90deg 90deg",  material: "BlueMat",   rgb: [0, 0, 1] },
+            { name: "Yellow (Left)",  orbit: "-90deg 90deg", material: "YellowMat", rgb: [1, 1, 0] },
+            { name: "Purple (Back)",  orbit: "180deg 90deg", material: "PurpleMat", rgb: [0.6, 0, 1] },
+            { name: "Orange (Front)", orbit: "0deg 90deg",   material: "OrangeMat", rgb: [1, 0.5, 0] },
+            { name: "Red (Top)",      orbit: "0deg 0deg",    material: "RedMat",    rgb: [1, 0, 0] },
+            { name: "Green (Bottom)", orbit: "0deg 180deg",  material: "GreenMat",  rgb: [0, 1, 0] }
+        ];
+
+        viewer.addEventListener("load", () => {
+            modelReady = true;
+            status.innerText = "System Ready";
+        });
+
+        // --- Zoom Implementation ---
+        const zoomStep = 0.6;
+        document.getElementById("zoomIn").addEventListener("click", () => {
+            const orbit = viewer.getCameraOrbit();
+            viewer.cameraOrbit = `${orbit.theta}rad ${orbit.phi}rad ${orbit.radius - zoomStep}m`;
+        });
+
+        document.getElementById("zoomOut").addEventListener("click", () => {
+            const orbit = viewer.getCameraOrbit();
+            viewer.cameraOrbit = `${orbit.theta}rad ${orbit.phi}rad ${orbit.radius + zoomStep}m`;
+        });
+
+        // --- Random Trigger Logic ---
+        btn.addEventListener("click", () => {
+            if (!modelReady) return;
+
+            const pick = faces[Math.floor(Math.random() * faces.length)];
+            
+            // Update Status UI
+            status.innerHTML = `Active: <span class="highlight" style="color:rgb(${pick.rgb[0]*255},${pick.rgb[1]*255},${pick.rgb[2]*255})">${pick.name}</span>`;
+
+            // 1. Rotate to face (keeping current zoom radius)
+            const currentOrbit = viewer.getCameraOrbit();
+            viewer.cameraOrbit = `${pick.orbit} ${currentOrbit.radius}m`;
+
+            // 2. Glow / Blink Animation
+            const material = viewer.model.materials.find(m => m.name === pick.material);
+            if (material) {
+                let blink = 0;
+                const interval = setInterval(() => {
+                    if (blink % 2 === 0) {
+                        material.setEmissiveFactor([pick.rgb[0] * 3, pick.rgb[1] * 3, pick.rgb[2] * 3]);
+                    } else {
+                        material.setEmissiveFactor([0, 0, 0]);
+                    }
+                    
+                    if (++blink > 6) {
+                        clearInterval(interval);
+                        material.setEmissiveFactor([0, 0, 0]); // Reset to off
+                    }
+                }, 120);
+            } else {
+                console.error("Check Blender: Material '" + pick.material + "' not found.");
+            }
+        });
+    </script>
+</body>
+</html>
